@@ -152,17 +152,17 @@ namespace AngelSix.SolidDna
         /// <summary>
         /// Called when the add-in has connected to SolidWorks
         /// </summary>
-        /// <param name="addInIntegration"></param>
-        public static void ConnectedToSolidWorks(AddInIntegration addInIntegration)
+        /// <param name="solidAddIn"></param>
+        public static void ConnectedToSolidWorks(SolidAddIn solidAddIn)
         {
             if (UseDetachedAppDomain)
-                PluginCrossDomain.ConnectedToSolidWorks(addInIntegration);
+                PluginCrossDomain.ConnectedToSolidWorks(solidAddIn);
             else
             {
-                addInIntegration.OnConnectedToSolidWorks();
+                solidAddIn.OnConnectedToSolidWorks();
 
                 // Inform plug-ins
-                addInIntegration.PlugIns.ForEach(plugin =>
+                solidAddIn.PlugIns.ForEach(plugin =>
                 {
                     // Log it
                     Logger.LogDebugSource($"Firing ConnectedToSolidWorks event for plugin `{plugin.AddInTitle}`...");
@@ -175,17 +175,17 @@ namespace AngelSix.SolidDna
         /// <summary>
         /// Called when the add-in has disconnected from SolidWorks
         /// </summary>
-        /// <param name="addInIntegration"></param>
-        public static void DisconnectedFromSolidWorks(AddInIntegration addInIntegration)
+        /// <param name="solidAddIn"></param>
+        public static void DisconnectedFromSolidWorks(SolidAddIn solidAddIn)
         {
             if (UseDetachedAppDomain)
-                PluginCrossDomain.DisconnectedFromSolidWorks(addInIntegration);
+                PluginCrossDomain.DisconnectedFromSolidWorks(solidAddIn);
             else
             {
-                addInIntegration.OnDisconnectedFromSolidWorks();
+                solidAddIn.OnDisconnectedFromSolidWorks();
 
                 // Inform plug-ins
-                addInIntegration.PlugIns.ForEach(plugin =>
+                solidAddIn.PlugIns.ForEach(plugin =>
                 {
                     // Log it
                     Logger.LogDebugSource($"Firing DisconnectedFromSolidWorks event for plugin `{plugin.AddInTitle}`...");
@@ -433,15 +433,15 @@ namespace AngelSix.SolidDna
         /// Runs any initialization code required on plug-ins
         /// </summary>
         /// <param name="addinPath">The path to the add-in that is calling this setup (typically acquired using GetType().Assembly.Location)</param>
-        /// <param name="addInIntegration"></param>
-        public static void ConfigurePlugIns(string addinPath, AddInIntegration addInIntegration)
+        /// <param name="solidAddIn"></param>
+        public static void ConfigurePlugIns(string addinPath, SolidAddIn solidAddIn)
         {
             if (UseDetachedAppDomain)
             {
                 // Log it
                 Logger.LogDebugSource($"Cross-domain ConfigurePlugIns...");
 
-                PluginCrossDomain.ConfigurePlugIns(addinPath, addInIntegration);
+                PluginCrossDomain.ConfigurePlugIns(addinPath, solidAddIn);
             }
             else
             {
@@ -476,7 +476,7 @@ namespace AngelSix.SolidDna
                 // Load all plug-in's at this stage for faster lookup
 
                 var plugIns = SolidDnaPlugIns(addinPath);
-                addInIntegration.PlugIns = plugIns;
+                solidAddIn.PlugIns = plugIns;
                 
                 // Log it
                 Logger.LogDebugSource($"{plugIns.Count} plug-ins found");
@@ -492,8 +492,8 @@ namespace AngelSix.SolidDna
                     Logger.LogDebugSource($"Setting Add-In Description: {firstPlugInWithTitle.AddInDescription}");
 
                     // Set title and description details
-                    addInIntegration.SolidWorksAddInTitle = firstPlugInWithTitle.AddInTitle;
-                    addInIntegration.SolidWorksAddInDescription = firstPlugInWithTitle.AddInDescription;
+                    solidAddIn.SolidWorksAddInTitle = firstPlugInWithTitle.AddInTitle;
+                    solidAddIn.SolidWorksAddInDescription = firstPlugInWithTitle.AddInDescription;
                 }
                 // Otherwise
                 else

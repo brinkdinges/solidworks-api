@@ -33,7 +33,7 @@ namespace AngelSix.SolidDna
         public SolidPlugIn()
         {
             // Add any references that are part of SolidDNA
-            IoC.AddIn.AddReferenceAssemblies<AddInIntegration>();
+            IoC.AddIn.AddReferenceAssemblies<SolidAddIn>();
         }
 
         #endregion

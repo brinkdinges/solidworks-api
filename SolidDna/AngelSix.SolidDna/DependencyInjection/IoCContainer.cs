@@ -21,7 +21,7 @@ namespace AngelSix.SolidDna
         /// <summary>
         /// The instance of the <see cref="AddInIntegration"/> class that is used for this add-in
         /// </summary>
-        public static AddInIntegration AddIn => Get<AddInIntegration>();
+        public static SolidAddIn AddIn => Get<SolidAddIn>();
 
         #endregion
 

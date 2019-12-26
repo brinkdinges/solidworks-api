@@ -3,9 +3,9 @@
 namespace AngelSix.SolidDna
 {
     /// <summary>
-    /// Creates a blank AddIn integration class
+    /// Creates a blank AddIn class
     /// </summary>
-    public class BlankAddInIntegration : AddInIntegration
+    public class BlankAddInIntegration : SolidAddIn
     {
         #region Constructor
 
