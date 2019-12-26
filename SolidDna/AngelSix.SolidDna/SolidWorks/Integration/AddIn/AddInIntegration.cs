@@ -27,6 +27,11 @@ namespace AngelSix.SolidDna
         /// </summary>
         protected List<AssemblyName> mReferencedAssemblies = new List<AssemblyName>();
 
+        /// <summary>
+        /// A list of all add-ins that are currently active.
+        /// </summary>
+        private static List<AddInIntegration> ActiveAddIns { get; } = new List<AddInIntegration>();
+
         #endregion
 
         #region Public Properties
@@ -34,12 +39,17 @@ namespace AngelSix.SolidDna
         /// <summary>
         /// The title displayed for this SolidWorks Add-in
         /// </summary>
-        public static string SolidWorksAddInTitle { get; set; } = "AngelSix SolidDna AddIn";
+        public string SolidWorksAddInTitle { get; set; } = "AngelSix SolidDna AddIn";
 
         /// <summary>
         /// The description displayed for this SolidWorks Add-in
         /// </summary>
-        public static string SolidWorksAddInDescription { get; set; } = "All your pixels are belong to us!";
+        public string SolidWorksAddInDescription { get; set; } = "All your pixels are belong to us!";
+
+        /// <summary>
+        /// A list of available plug-ins loaded once SolidWorks has connected
+        /// </summary>
+        public List<SolidPlugIn> PlugIns { get; set; }= new List<SolidPlugIn>();
 
         /// <summary>
         /// Represents the current SolidWorks application
@@ -61,7 +71,7 @@ namespace AngelSix.SolidDna
         ///  
         /// NOTE: This call will be made twice, one in the default domain and one in the AppDomain as the SolidDna plug-ins
         /// </summary>
-        public static event Action ConnectedToSolidWorks = () => { };
+        public event Action ConnectedToSolidWorks = () => { };
 
         /// <summary>
         /// Called once SolidWorks has unloaded our add-in.
@@ -69,7 +79,7 @@ namespace AngelSix.SolidDna
         /// 
         /// NOTE: This call will be made twice, one in the default domain and one in the AppDomain as the SolidDna plug-ins
         /// </summary>
-        public static event Action DisconnectedFromSolidWorks = () => { };
+        public event Action DisconnectedFromSolidWorks = () => { };
 
         #endregion
 
@@ -121,6 +131,8 @@ namespace AngelSix.SolidDna
                 if (standAlone)
                     // Connect to active SolidWorks
                     ConnectToActiveSolidWork();
+
+                ActiveAddIns.Add(this);
             }
             catch (Exception ex)
             {
@@ -229,7 +241,7 @@ namespace AngelSix.SolidDna
                 Logger.LogDebugSource($"Configuring PlugIns...");
 
                 // Perform any plug-in configuration
-                PlugInIntegration.ConfigurePlugIns(assemblyPath);
+                PlugInIntegration.ConfigurePlugIns(assemblyPath, this);
 
                 // Log it
                 Logger.LogDebugSource($"Firing ApplicationStartup...");
@@ -247,7 +259,7 @@ namespace AngelSix.SolidDna
                 Logger.LogDebugSource($"PlugInIntegration ConnectedToSolidWorks...");
 
                 // And plug-in domain listeners
-                PlugInIntegration.ConnectedToSolidWorks();
+                PlugInIntegration.ConnectedToSolidWorks(this);
 
                 // Return ok
                 return true;
@@ -277,10 +289,13 @@ namespace AngelSix.SolidDna
             DisconnectedFromSolidWorks();
 
             // And plug-in domain listeners
-            PlugInIntegration.DisconnectedFromSolidWorks();
+            PlugInIntegration.DisconnectedFromSolidWorks(this);
 
             // Log it
             Logger.LogDebugSource($"Tearing down...");
+
+            // Remove it from the list. Do this before calling PlugInIntegration.Teardown
+            ActiveAddIns.Remove(this);
 
             // Clean up plug-in app domain
             PlugInIntegration.Teardown();
@@ -296,7 +311,7 @@ namespace AngelSix.SolidDna
         /// <summary>
         /// When the add-in has connected to SolidWorks
         /// </summary>
-        public static void OnConnectedToSolidWorks()
+        public void OnConnectedToSolidWorks()
         {
             // Log it
             Logger.LogDebugSource($"Firing ConnectedToSolidWorks event...");
@@ -307,7 +322,7 @@ namespace AngelSix.SolidDna
         /// <summary>
         /// When the add-in has disconnected to SolidWorks
         /// </summary>
-        public static void OnDisconnectedFromSolidWorks()
+        public void OnDisconnectedFromSolidWorks()
         {
             // Log it
             Logger.LogDebugSource($"Firing DisconnectedFromSolidWorks event...");
@@ -327,7 +342,7 @@ namespace AngelSix.SolidDna
         protected static void ComRegister(Type t)
         {
             // Create new instance of ComRegister add-in to setup DI
-            new ComRegisterAddInIntegration();
+            var addin = new ComRegisterAddInIntegration();
 
             try
             {
@@ -363,13 +378,13 @@ namespace AngelSix.SolidDna
                     Logger.LogInformationSource("Configuring plugins...");
 
                     // Let plug-ins configure title and descriptions
-                    PlugInIntegration.ConfigurePlugIns(pluginPath);
-
+                    PlugInIntegration.ConfigurePlugIns(pluginPath, addin);
+                    
                     // Set SolidWorks add-in title and description
-                    rk.SetValue("Title", SolidWorksAddInTitle);
-                    rk.SetValue("Description", SolidWorksAddInDescription);
+                    rk.SetValue("Title", addin.SolidWorksAddInTitle);
+                    rk.SetValue("Description", addin.SolidWorksAddInDescription);
 
-                    Logger.LogInformationSource($"COM Registration successful. '{SolidWorksAddInTitle}' : '{SolidWorksAddInDescription}'");
+                    Logger.LogInformationSource($"COM Registration successful. '{addin.SolidWorksAddInTitle}' : '{addin.SolidWorksAddInDescription}'");
                 }
             }
             catch (Exception ex)
@@ -391,7 +406,6 @@ namespace AngelSix.SolidDna
 
             // Remove our registry entry
             Microsoft.Win32.Registry.LocalMachine.DeleteSubKeyTree(keyPath);
-
         }
 
         #endregion
@@ -522,6 +536,9 @@ namespace AngelSix.SolidDna
         /// </summary>
         public static void TearDown()
         {
+            if (ActiveAddIns.Count != 0)
+                return;
+            
             // If we have an reference...
             if (SolidWorks != null)
             {
