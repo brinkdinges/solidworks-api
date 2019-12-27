@@ -116,10 +116,10 @@ namespace AngelSix.SolidDna
                 Logger.LogDebugSource($"Assembly File Path {assemblyFilePath}");
                 Logger.LogDebugSource($"Assembly Path {assemblyPath}");
 
-                // If we are in stand-alone mode...
-                if (standAlone)
+                // If we are in stand-alone mode and the SolidWorks has not yet been instantiated..
+                if (standAlone && AddInIntegration.SolidWorks == null)
                     // Connect to active SolidWorks
-                    AddInIntegration.ConnectToActiveSolidWorks();
+                    AddInIntegration.ConnectToActiveSolidWorksForStandAlone();
 
                 AddInIntegration.ActiveAddIns.Add(this);
             }

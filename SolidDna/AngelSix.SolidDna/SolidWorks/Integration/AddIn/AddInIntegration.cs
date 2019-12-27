@@ -22,7 +22,7 @@ namespace AngelSix.SolidDna
         /// <summary>
         /// Represents the current SolidWorks application
         /// </summary>
-        public static SolidWorksApplication SolidWorks { get; set; }
+        public static SolidWorksApplication SolidWorks { get; private set; }
 
         #endregion
 
@@ -110,7 +110,7 @@ namespace AngelSix.SolidDna
         /// Attempts to set the SolidWorks property to the active SolidWorks instance
         /// </summary>
         /// <returns></returns>
-        public static bool ConnectToActiveSolidWorks()
+        public static void ConnectToActiveSolidWorksForStandAlone()
         {
             try
             {
@@ -119,18 +119,36 @@ namespace AngelSix.SolidDna
 
                 // Log it
                 Logger.LogDebugSource($"Aquired active instance SolidWorks in Stand-Alone mode");
-
-                // Return if successful
-                return SolidWorks != null;
             }
             // If we failed to get active instance...
             catch (COMException)
             {
                 // Log it
-                Logger.LogDebugSource($"Failed to get active instance of SolidWorks in Stand-Alone mode");
+                Logger.LogDebugSource("Failed to get active instance of SolidWorks in Stand-Alone mode");
+            }
+        }
 
-                // Return failure
-                return false;
+        /// <summary>
+        /// Attempts to set the SolidWorks property to the active SolidWorks instance
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        public static void ConnectToActiveSolidWorks(string version, int cookie)
+        {
+            try
+            {
+                // Get the version number (such as 25 for 2016)
+                var postFix = "";
+                if (version != null && version.Contains("."))
+                    postFix = "." + version.Substring(0, version.IndexOf('.'));
+                var solidWorksProgId = "SldWorks.Application" + postFix;
+
+                SolidWorks = new SolidWorksApplication((SldWorks) Activator.CreateInstance(Type.GetTypeFromProgID(solidWorksProgId)), cookie);
+            }
+            catch (Exception e)
+            {
+                Logger.LogDebugSource("Failed to get active instance of SolidWorks in add-in mode", exception: e);
             }
         }
 
