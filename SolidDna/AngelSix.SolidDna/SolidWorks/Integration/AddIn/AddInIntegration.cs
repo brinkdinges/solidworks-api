@@ -108,9 +108,10 @@ namespace AngelSix.SolidDna
 
         /// <summary>
         /// Attempts to set the SolidWorks property to the active SolidWorks instance
+        /// Remember to call <see cref="TearDown"/> once done.
         /// </summary>
         /// <returns></returns>
-        public static void ConnectToActiveSolidWorksForStandAlone()
+        public static bool ConnectToActiveSolidWorksForStandAlone()
         {
             try
             {
@@ -118,13 +119,19 @@ namespace AngelSix.SolidDna
                 SolidWorks = new SolidWorksApplication((SldWorks) Marshal.GetActiveObject("SldWorks.Application"), 0);
 
                 // Log it
-                Logger.LogDebugSource($"Aquired active instance SolidWorks in Stand-Alone mode");
+                Logger.LogDebugSource($"Acquired active instance SolidWorks in Stand-Alone mode");
+
+                // Return if successful
+                return SolidWorks != null;
             }
             // If we failed to get active instance...
             catch (COMException)
             {
                 // Log it
                 Logger.LogDebugSource("Failed to get active instance of SolidWorks in Stand-Alone mode");
+
+                // Return failure
+                return false;
             }
         }
 

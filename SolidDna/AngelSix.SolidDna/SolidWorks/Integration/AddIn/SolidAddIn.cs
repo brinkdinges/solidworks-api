@@ -390,23 +390,5 @@ namespace AngelSix.SolidDna
         }
 
         #endregion
-
-        #region Stand alone methods
-
-        ///// <summary>
-        ///// Attempts to set the SolidWorks property to the active SolidWorks instance.
-        ///// Remember to call <see cref="TearDown"/> once done.
-        ///// </summary>
-        ///// <returns></returns>
-        //public static bool ConnectToActiveSolidWorks()
-        //{
-        //    // Create new blank add-in
-        //    var addin = new BlankAddInIntegration();
-
-        //    // Return if we successfully got an instance
-        //    return AddInIntegration.ConnectToActiveSolidWorks();
-        //}
-
-        #endregion
     }
 }
