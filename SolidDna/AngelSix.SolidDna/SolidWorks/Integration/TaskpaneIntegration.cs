@@ -1,4 +1,6 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Linq;
+using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 
 namespace AngelSix.SolidDna
@@ -32,6 +34,12 @@ namespace AngelSix.SolidDna
         #endregion
 
         #region Public Properties
+
+        /// <summary>
+        /// The name for the add-in that contains this task pane.
+        /// Used to set the taskpane title and to remove the taskpane when the add-in is disabled.
+        /// </summary>
+        public string AddInTitle { get; set; }
 
         /// <summary>
         /// An absolute path to an image icon (ideally 37x37px) to use for the taskpane icon
@@ -72,16 +80,31 @@ namespace AngelSix.SolidDna
         public async void AddToTaskpaneAsync()
         {
             // Create our Taskpane
-            mTaskpaneView = await AddInIntegration.SolidWorks.CreateTaskpaneAsync(Icon, "Your add-in here");
+            mTaskpaneView = await AddInIntegration.SolidWorks.CreateTaskpaneAsync(Icon, AddInTitle);
 
             // Load our UI into the taskpane
             mHostControl = await mTaskpaneView.AddControlAsync<ITaskpaneControl>(mHostProgId, string.Empty);
 
+            // Hook into disconnect event of SolidWorks to unload ourselves automatically
+            // Find the add-in with the same title as AddInTitle from this taskpane
+            var addIn = AddInIntegration.ActiveAddIns.FirstOrDefault(x =>
+                x.SolidWorksAddInTitle.Equals(AddInTitle, StringComparison.InvariantCultureIgnoreCase));
+
+            // Hook into the disconnect event when we found an add-in.
+            if (addIn == null)
+            {
+                // If getting the add-in by name fails, use the first add-in as a backup.
+                // This way the task pane is removed correctly when you forget to set AddInTitle
+                // Since many users will only create one add-in, this will be useful.
+                var firstAddIn = AddInIntegration.ActiveAddIns.FirstOrDefault();
+                if (firstAddIn != null)
+                    firstAddIn.DisconnectedFromSolidWorks += RemoveFromTaskpane;
+            }
+            else
+                addIn.DisconnectedFromSolidWorks += RemoveFromTaskpane;
+
             // Set UI thread
             ThreadHelpers.Enable((Control)mHostControl);
-
-            // Hook into disconnect event of SolidWorks to unload ourselves automatically
-            //AddInIntegration.DisconnectedFromSolidWorks += RemoveFromTaskpane;
 
             // Add WPF control if we have one
             if (WpfControl != null)
