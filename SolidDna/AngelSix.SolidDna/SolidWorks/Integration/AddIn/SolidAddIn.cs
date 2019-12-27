@@ -88,6 +88,7 @@ namespace AngelSix.SolidDna
                 // Help resolve any assembly references
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
+                // Add any references that are part of SolidDNA
                 AddReferenceAssemblies<SolidAddIn>();
 
                 // Get the path to this actual add-in dll
