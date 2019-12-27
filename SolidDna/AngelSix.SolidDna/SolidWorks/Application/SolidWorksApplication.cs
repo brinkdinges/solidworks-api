@@ -574,14 +574,14 @@ namespace AngelSix.SolidDna
         /// Attempts to create 
         /// </summary>
         /// <param name="iconPath">An absolute path to an icon to use for the taskpane (ideally 37x37px)</param>
-        /// <param name="toolTip">The title text to show at the top of the taskpane</param>
-        public async Task<Taskpane> CreateTaskpaneAsync(string iconPath, string toolTip)
+        /// <param name="titleAndToolTip">The title text to show at the top of the taskpane</param>
+        public async Task<Taskpane> CreateTaskpaneAsync(string iconPath, string titleAndToolTip)
         {
             // Wrap any error creating the taskpane in a SolidDna exception
             return SolidDnaErrors.Wrap<Taskpane>(() =>
             {
                 // Attempt to create the taskpane
-                var comTaskpane = BaseObject.CreateTaskpaneView2(iconPath, toolTip);
+                var comTaskpane = BaseObject.CreateTaskpaneView2(iconPath, titleAndToolTip);
 
                 // If we fail, return null
                 if (comTaskpane == null)
