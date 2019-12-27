@@ -32,8 +32,7 @@ namespace AngelSix.SolidDna
         /// </summary>
         public SolidPlugIn()
         {
-            // Add any references that are part of SolidDNA
-            IoC.AddIn.AddReferenceAssemblies<SolidAddIn>();
+
         }
 
         #endregion
@@ -69,9 +68,6 @@ namespace AngelSix.SolidDna
         /// </summary>
         public SolidPlugIn() : base()
         {
-            // Add any references from the parent plug-in project
-            IoC.AddIn.AddReferenceAssemblies<T>();
-
             // Disable discovering plug-in and make it quicker by auto-adding it
             PlugInIntegration.AutoDiscoverPlugins = false;
 

@@ -1,6 +1,7 @@
 ﻿using Dna;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using SolidWorks.Interop.sldworks;
 using static Dna.FrameworkDI;
@@ -23,6 +24,30 @@ namespace AngelSix.SolidDna
         /// Represents the current SolidWorks application
         /// </summary>
         public static SolidWorksApplication SolidWorks { get; private set; }
+
+        #endregion
+
+        #region Get add-in with a certain name
+
+        /// <summary>
+        /// Get one of the active add-ins using by its name.
+        /// </summary>
+        /// <param name="addInName"></param>
+        /// <returns>If only one add-in is active, it returns that one. Otherwise returns the first add-in with the requested name or null.</returns>
+        public static SolidAddIn GetOnlyAddInOrAddInWithName(string addInName)
+        {
+            // If there is only one add-in (which will happen often), we return that one.
+            if (ActiveAddIns.Count == 1)
+                return ActiveAddIns.First();
+
+            // If no match is found, return the first add-in
+            var addInWithSameName = ActiveAddIns.FirstOrDefault(x => x.SolidWorksAddInTitle.Equals(addInName, StringComparison.InvariantCultureIgnoreCase));
+            if (addInWithSameName == null)
+                return ActiveAddIns.First();
+
+            // If a match is found, return it.
+            return addInWithSameName;
+        }
 
         #endregion
 

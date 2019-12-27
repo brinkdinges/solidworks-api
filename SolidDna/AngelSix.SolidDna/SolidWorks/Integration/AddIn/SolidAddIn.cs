@@ -88,6 +88,8 @@ namespace AngelSix.SolidDna
                 // Help resolve any assembly references
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
+                AddReferenceAssemblies<SolidAddIn>();
+
                 // Get the path to this actual add-in dll
                 var assemblyFilePath = this.AssemblyFilePath();
                 var assemblyPath = this.AssemblyPath();
@@ -97,11 +99,6 @@ namespace AngelSix.SolidDna
                 {
                     //  Add SolidDna-specific services
                     // --------------------------------
-
-                    // Add reference to the add-in integration
-                    // Which can then be fetched anywhere with
-                    // IoC.AddIn
-                    construction.Services.AddSingleton(this);
 
                     // Add localization manager
                     construction.AddLocalizationManager();

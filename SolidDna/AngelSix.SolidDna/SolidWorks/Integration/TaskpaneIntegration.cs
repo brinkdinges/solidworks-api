@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using Dna;
+using static Dna.FrameworkDI;
 
 namespace AngelSix.SolidDna
 {
@@ -87,20 +89,12 @@ namespace AngelSix.SolidDna
 
             // Hook into disconnect event of SolidWorks to unload ourselves automatically
             // Find the add-in with the same title as AddInTitle from this taskpane
-            var addIn = AddInIntegration.ActiveAddIns.FirstOrDefault(x =>
-                x.SolidWorksAddInTitle.Equals(AddInTitle, StringComparison.InvariantCultureIgnoreCase));
+            if (string.IsNullOrEmpty(AddInTitle))
+                Logger.LogErrorSource("AddInTitle not set in TaskPaneIntegration. Unloading the task pane might not work correctly");
+            var addIn = AddInIntegration.GetOnlyAddInOrAddInWithName(AddInTitle);
 
             // Hook into the disconnect event when we found an add-in.
-            if (addIn == null)
-            {
-                // If getting the add-in by name fails, use the first add-in as a backup.
-                // This way the task pane is removed correctly when you forget to set AddInTitle
-                // Since many users will only create one add-in, this will be useful.
-                var firstAddIn = AddInIntegration.ActiveAddIns.FirstOrDefault();
-                if (firstAddIn != null)
-                    firstAddIn.DisconnectedFromSolidWorks += RemoveFromTaskpane;
-            }
-            else
+            if (addIn != null)
                 addIn.DisconnectedFromSolidWorks += RemoveFromTaskpane;
 
             // Set UI thread
