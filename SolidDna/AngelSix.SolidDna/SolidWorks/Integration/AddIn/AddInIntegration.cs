@@ -27,26 +27,26 @@ namespace AngelSix.SolidDna
 
         #endregion
 
-        #region Get add-in with a certain name
+        #region Get add-in with a certain type
 
         /// <summary>
-        /// Get one of the active add-ins using by its name.
+        /// Get one of the active add-ins by its type.
         /// </summary>
-        /// <param name="addInName"></param>
-        /// <returns>If only one add-in is active, it returns that one. Otherwise returns the first add-in with the requested name or null.</returns>
-        public static SolidAddIn GetOnlyAddInOrAddInWithName(string addInName)
+        /// <param name="type">The type of the add-in that contains the new taskpane</param>
+        /// <returns>Returns the only add-in if only one is active. Otherwise returns the first add-in with the requested name or null.</returns>
+        public static SolidAddIn GetOnlyAddInOrAddInWithType(Type type)
         {
             // If there is only one add-in (which will happen often), we return that one.
             if (ActiveAddIns.Count == 1)
                 return ActiveAddIns.First();
 
             // If no match is found, return the first add-in
-            var addInWithSameName = ActiveAddIns.FirstOrDefault(x => x.SolidWorksAddInTitle.Equals(addInName, StringComparison.InvariantCultureIgnoreCase));
-            if (addInWithSameName == null)
+            var addInWithSameType = ActiveAddIns.FirstOrDefault(x => x.GetType() == type);
+            if (addInWithSameType == null)
                 return ActiveAddIns.First();
 
             // If a match is found, return it.
-            return addInWithSameName;
+            return addInWithSameType;
         }
 
         #endregion

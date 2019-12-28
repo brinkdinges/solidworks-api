@@ -1,9 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using Dna;
-using static Dna.FrameworkDI;
 
 namespace AngelSix.SolidDna
 {
@@ -14,7 +10,9 @@ namespace AngelSix.SolidDna
     /// IMPORTANT: It is required that the class overriding this only uses a parameterless constructor
     /// as it is created via Com so cannot have a parameter-based construction otherwise it won't load
     /// </summary>
-    public class TaskpaneIntegration<THost> where THost : ITaskpaneControl, new()
+    public class TaskpaneIntegration<THost, TParentAddIn> 
+        where THost : ITaskpaneControl, new()
+        where TParentAddIn : SolidAddIn, new()
     {
         #region Protected Members
 
@@ -33,15 +31,14 @@ namespace AngelSix.SolidDna
         /// </summary>
         protected string mHostProgId;
 
+        /// <summary>
+        /// The add-in that contains this taskpane
+        /// </summary>
+        protected SolidAddIn mParentAddin;
+
         #endregion
 
         #region Public Properties
-
-        /// <summary>
-        /// The name for the add-in that contains this task pane.
-        /// Used to set the taskpane title and to remove the taskpane when the add-in is disabled.
-        /// </summary>
-        public string AddInTitle { get; set; }
 
         /// <summary>
         /// An absolute path to an image icon (ideally 37x37px) to use for the taskpane icon
@@ -68,6 +65,9 @@ namespace AngelSix.SolidDna
         {
             // Find out the ProgId of the desired control type
             mHostProgId = new THost().ProgId;
+
+            // Find out which add-in this task pane belongs to
+            mParentAddin = AddInIntegration.GetOnlyAddInOrAddInWithType(typeof(TParentAddIn));
         }
 
         #endregion
@@ -82,20 +82,14 @@ namespace AngelSix.SolidDna
         public async void AddToTaskpaneAsync()
         {
             // Create our Taskpane
-            mTaskpaneView = await AddInIntegration.SolidWorks.CreateTaskpaneAsync(Icon, AddInTitle);
+            mTaskpaneView = await AddInIntegration.SolidWorks.CreateTaskpaneAsync(Icon, mParentAddin.SolidWorksAddInTitle);
 
             // Load our UI into the taskpane
             mHostControl = await mTaskpaneView.AddControlAsync<ITaskpaneControl>(mHostProgId, string.Empty);
 
             // Hook into disconnect event of SolidWorks to unload ourselves automatically
-            // Find the add-in with the same title as AddInTitle from this taskpane
-            if (string.IsNullOrEmpty(AddInTitle))
-                Logger.LogErrorSource("AddInTitle not set in TaskPaneIntegration. Unloading the task pane might not work correctly");
-            var addIn = AddInIntegration.GetOnlyAddInOrAddInWithName(AddInTitle);
-
-            // Hook into the disconnect event when we found an add-in.
-            if (addIn != null)
-                addIn.DisconnectedFromSolidWorks += RemoveFromTaskpane;
+            if (mParentAddin != null)
+                mParentAddin.DisconnectedFromSolidWorks += RemoveFromTaskpane;
 
             // Set UI thread
             ThreadHelpers.Enable((Control)mHostControl);
