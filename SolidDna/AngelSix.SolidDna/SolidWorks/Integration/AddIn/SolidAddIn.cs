@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Dna;
-using Microsoft.Extensions.DependencyInjection;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swpublished;
 using static Dna.FrameworkDI;
@@ -91,28 +90,12 @@ namespace AngelSix.SolidDna
                 // Add any references that are part of SolidDNA
                 AddReferenceAssemblies<SolidAddIn>();
 
-                // Get the path to this actual add-in dll
-                var assemblyFilePath = this.AssemblyFilePath();
-                var assemblyPath = this.AssemblyPath();
-
-                // Setup IoC
-                IoC.Setup(assemblyFilePath, construction =>
-                {
-                    //  Add SolidDna-specific services
-                    // --------------------------------
-
-                    // Add localization manager
-                    construction.AddLocalizationManager();
-
-                    //  Configure any services this class wants to add
-                    // ------------------------------------------------
-                    ConfigureServices(construction);
-                });
+                // Setup IoC for the first add-in that uses SolidDna
+                AddInIntegration.SetupDependencyInjection(this);
 
                 // Log details
-                Logger.LogDebugSource($"DI Setup complete");
-                Logger.LogDebugSource($"Assembly File Path {assemblyFilePath}");
-                Logger.LogDebugSource($"Assembly Path {assemblyPath}");
+                Logger.LogDebugSource($"Assembly File Path {this.AssemblyFilePath()}");
+                Logger.LogDebugSource($"Assembly Path {this.AssemblyPath()}");
 
                 // If we are in stand-alone mode and the SolidWorks has not yet been instantiated..
                 if (standAlone && AddInIntegration.SolidWorks == null)

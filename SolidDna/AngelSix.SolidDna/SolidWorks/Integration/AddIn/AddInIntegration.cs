@@ -27,6 +27,42 @@ namespace AngelSix.SolidDna
 
         #endregion
 
+        #region Set up dependency injection
+
+        /// <summary>
+        /// Setup IoC for the first add-in.
+        /// Skip if for all other add-ins until we find a better solution.
+        /// </summary>
+        /// <param name="solidAddIn"></param>
+        public static void SetupDependencyInjection(SolidAddIn solidAddIn)
+        {
+            if (Framework.Construction != null)
+            {
+                Logger.LogDebugSource("DI setup was already done for another add-in, skipping");
+                return;
+            }
+
+            // Get the path to the add-in dll
+            var assemblyFilePath = solidAddIn.AssemblyFilePath();
+
+            // Setup IoC
+            IoC.Setup(assemblyFilePath, construction =>
+            {
+                //  Add SolidDna-specific services
+                // --------------------------------
+                // Add localization manager
+                construction.AddLocalizationManager();
+
+                //  Configure any services this class wants to add
+                // ------------------------------------------------
+                solidAddIn.ConfigureServices(construction);
+            });
+
+            Logger.LogDebugSource($"DI Setup complete");
+        }
+
+        #endregion
+
         #region Get add-in with a certain type
 
         /// <summary>
